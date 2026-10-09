@@ -27,7 +27,8 @@ func (s State) String() string {
 }
 
 type Node struct {
-	mu              sync.Mutex
+	mu sync.Mutex
+
 	ID              string
 	State           State
 	CurrentTerm     uint64
@@ -83,6 +84,30 @@ func (n *Node) ReceiveHeartbeat(term uint64, leaderID string) {
 	n.State = Follower
 	n.LeaderID = leaderID
 	n.LastHeartbeat = time.Now()
+}
+
+func (n *Node) RequestVote(term uint64, candidateID string) bool {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+
+	if term < n.CurrentTerm {
+		return false
+	}
+
+	if term > n.CurrentTerm {
+		n.CurrentTerm = term
+		n.State = Follower
+		n.VotedFor = ""
+		n.LeaderID = ""
+	}
+
+	if n.VotedFor != "" && n.VotedFor != candidateID {
+		return false
+	}
+
+	n.VotedFor = candidateID
+	n.LastHeartbeat = time.Now()
+	return true
 }
 
 func (n *Node) GetState() (State, uint64, string) {
