@@ -1,0 +1,34 @@
+// Reference schema for the RPC contract. The current implementation uses
+// a compact JSON gRPC codec with Go structs to keep the project easy to study.
+// For production interoperability, generate protobuf stubs from this schema.
+syntax = "proto3";
+package kv;
+option go_package = "distributed-kv-store/proto;kvpb";
+
+message VoteRequest {
+  uint64 term = 1;
+  string candidate_id = 2;
+  int64 last_log_index = 3;
+  uint64 last_log_term = 4;
+}
+message VoteResponse { uint64 term = 1; bool vote_granted = 2; }
+message Entry { int64 index = 1; uint64 term = 2; string op = 3; string key = 4; string value = 5; }
+message AppendRequest {
+  uint64 term = 1;
+  string leader_id = 2;
+  int64 prev_log_index = 3;
+  uint64 prev_log_term = 4;
+  repeated Entry entries = 5;
+  int64 leader_commit = 6;
+}
+message AppendResponse { uint64 term = 1; bool success = 2; int64 match_index = 3; }
+message ClientRequest { string op = 1; string key = 2; string value = 3; }
+message ClientResponse { bool ok = 1; string value = 2; string error = 3; string leader_id = 4; string leader_addr = 5; }
+message HealthResponse { string id = 1; string state = 2; uint64 term = 3; string leader_id = 4; }
+service Node {
+  rpc RequestVote(VoteRequest) returns (VoteResponse);
+  rpc AppendEntries(AppendRequest) returns (AppendResponse);
+  rpc Client(ClientRequest) returns (ClientResponse);
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+message HealthRequest {}

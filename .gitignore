@@ -1,0 +1,8 @@
+bin/
+*.json
+data/
+.DS_Store
+
+# Compiled binaries
+/node
+/client

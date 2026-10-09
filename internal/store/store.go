@@ -7,17 +7,12 @@ import (
 
 var ErrKeyNotFound = errors.New("key not found")
 
-// Store is a thread-safe in-memory key-value store.
 type Store struct {
 	mu   sync.RWMutex
 	data map[string]string
 }
 
-func New() *Store {
-	return &Store{
-		data: make(map[string]string),
-	}
-}
+func New() *Store { return &Store{data: make(map[string]string)} }
 
 func (s *Store) Set(key, value string) {
 	s.mu.Lock()
@@ -28,12 +23,11 @@ func (s *Store) Set(key, value string) {
 func (s *Store) Get(key string) (string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-
-	value, ok := s.data[key]
+	v, ok := s.data[key]
 	if !ok {
 		return "", ErrKeyNotFound
 	}
-	return value, nil
+	return v, nil
 }
 
 func (s *Store) Delete(key string) {
